@@ -3,6 +3,7 @@ title: "Group 29"
 output:
   pdf_document: 
    extra_dependencies: "subfig"
+fontsize: 12
 header-includes:
  \usepackage{float}
  \usepackage{graphicx}
@@ -93,6 +94,7 @@ group_29_ <- group_29_ %>% mutate(Ethnicity = ifelse(Ethnicity=="-0.50212", "Asi
 # Summaries
 
 ```{r summaries, fig.ncol = 2, fig.asp=0.7, fig.align = "center", fig.cap='Summaries', fig.subcap=c(' Relationship between crack use and age', 'Relationship between crack use and gender', 'Relationship between crack use and education', 'Relationship between crack use and country', 'Relationship between crack use and ethnicity', 'Boxplots of personality measurements per use of drug')}
+
 age_hist <- ggplot(data = group_29_, aes(x=as.factor(Age), group = Crack)) +
   geom_bar(aes(y = ..prop.., fill= Crack), stat="count", position="dodge") +
   scale_fill_manual(values =  c("salmon", "grey", "darkseagreen")) +
@@ -272,7 +274,18 @@ rpart.plot(tree.crack, type=2, extra=4)
 
 plotcp(tree.crack)
 ```
-![Tree method](images/tree1.png) & ![Correlation matrix.](images/cp1.png)
+
+\begin{table}[ht!]
+    \centering
+    \begin{tabular}{c|c}
+    \hline
+    \includegraphics[width=0.4\linewidth]{tree1.png} &
+    \includegraphics[width=0.4\linewidth]{cptree.png}
+\end{figure}
+\end{tabular}
+    \caption{Decision tree and cp plot}
+    \label{kaplan1}
+\end{table}
 
 ```{r tree2, echo=FALSE}
 pred <- predict(tree.crack, train.tree, type="class")
@@ -304,8 +317,20 @@ kable(test_class,
       caption = "Table form the full pruned tree") %>%
   kable_styling(latex_options = "HOLD_position", full_width = F)
 ```
-![Tree method](images/Full tree.png) & ![Correlation matrix.](images/Full tree cp.png)
-```{r fulltree, echo=FALSE}
+
+\begin{table}[ht!]
+    \centering
+    \begin{tabular}{c|c}
+    \hline
+    \includegraphics[width=0.4\linewidth]{Full tree.png} &
+    \includegraphics[width=0.4\linewidth]{Full tree cp.png}
+\end{figure}
+\end{tabular}
+    \caption{Pruned full tree and cp plot}
+    \label{kaplan1}
+\end{table}
+
+```{r fulltree, echo=FALSE, include=FALSE}
 #full tree and prune
 Full_tree <- rpart(Crack~Age+Gender+Education+Country+Ethnicity+Nscore+Escore+Oscore+Ascore+Cscore+Impulsive+SS, data=train.tree, method="class", 
                    control=rpart.control(minsplit=2,minbucket=1,maxdepth=30,cp=-1))
@@ -400,8 +425,9 @@ test.data2  <- group_29[-ind,-c(1:6,14)]
 ```{r lda1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 lda.data1 <- lda(Crack~., data=train.data1)
 
-table(Actual=(actual<-train.data1$Crack),
-       Predicted=(classified<-predict(lda.data1)$class))
+kable(table(Actual=(actual<-train.data1$Crack),
+       Predicted=(classified<-predict(lda.data1)$class))) %>%
+  kable_styling(latex_options = "HOLD_position", full_width = F)
 ```
 The density plot for each of the drug use factors has been plotted on the same axis to see the overlap between them.
 ```{r lda1_plot1, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:corr} Linear discriminant analysis", fig.asp=0.7, fig.pos = "H"}
@@ -417,8 +443,9 @@ ggplot(dataset1, aes(x=lda.LD1)) +
 ```{r lda, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 lda.data2 <- lda(Crack~.,data=train.data2)
 
-table( Actual=(actual<-train.data2$Crack),
-       Predicted=(classified<-predict(lda.data2)$class) )
+kable(table( Actual=(actual<-train.data2$Crack),
+       Predicted=(classified<-predict(lda.data2)$class)))%>%
+  kable_styling(latex_options = "HOLD_position", full_width = F)
 ```
 ```{r lda_plot2, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:corr} Linear discriminant analysis", fig.asp=0.7, fig.pos = "H"}
 data.pred.tr2 <- predict((lda.data2))
@@ -438,21 +465,22 @@ data.pred.te21 <- predict(qda.data1, test.data1)
 
 #mean(train.data$Crack != data.pred.te2$class)
 
-table(actual<-train.data1$Crack, 
-      Predicted<-predict(qda.data1)$class)
+kable(table(actual<-train.data1$Crack, 
+      Predicted<-predict(qda.data1)$class)) %>%
+  kable_styling(latex_options = "HOLD_position", full_width = F)
 
-mean(is_miss <- actual != Predicted)
+mean_lda <- mean(is_miss <- actual != Predicted)
 ```
-
 ```{r qda2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 qda.data2 <- qda(Crack~., data=train.data2)
 data.pred.te22 <- predict(qda.data2, test.data2)
 
 #mean(train.data$Crack != data.pred.te2$class)
 
-table(actual<-train.data2$Crack, Predicted<-predict(qda.data2)$class)
+kable(table(actual<-train.data2$Crack, Predicted<-predict(qda.data2)$class)) %>%
+  kable_styling(latex_options = "HOLD_position", full_width = F)
 
-mean(is_miss <- actual != classified)
+mean_qda <- mean(is_miss <- actual != classified)
 ```
 
 Better than LDA, but far from suitable for this set. 
