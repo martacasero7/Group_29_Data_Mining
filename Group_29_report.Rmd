@@ -420,7 +420,7 @@ lda.data2 <- lda(Crack~.,data=train.data2)
 table( Actual=(actual<-train.data2$Crack),
        Predicted=(classified<-predict(lda.data2)$class) )
 ```
-```{lda_plot2, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:corr} Linear discriminant analysis", fig.asp=0.7, fig.pos = "H"}
+```{r lda_plot2, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:corr} Linear discriminant analysis", fig.asp=0.7, fig.pos = "H"}
 data.pred.tr2 <- predict((lda.data2))
 ldahist(data = data.pred.tr2$x[,1], g=train.data2$Crack)
 
@@ -526,7 +526,7 @@ accuracy(test.data$Crack, pred_svm_2)
 In summary, based on the SVM model, we transformed the three-classification problem into a two-classification problem by both one-to-one and one-to-all strategies, and applied the radial kernel, as well as adjusting the parameters to obtain the final two models. However, due to the poor quality of the data, the final models on the test set predicted all observations to be in the classification of never used drugs, but nevertheless maintained a high prediction accuracy of 86.30%. If the model continues to be used in the future, information on the drug-using population or more relevant variables should be added.
 
 ## Neural network
-A neural network is a computer algorithm whose structure and function are similar to biological nervous systems. It consists of a series of interconnected nodes (also known as neurons) that process input data and generate output. Neural networks are commonly used for machine learning tasks such as classification, regression, image recognition, natural language processing, etc.
+A neural network is a computer algorithm with a structure and function similar to the biological nervous systems. It consists of a series of interconnected nodes (also known as neurons) that process input data and generate output. Neural networks are commonly used for machine learning tasks such as classification, regression, image recognition, natural language processing, etc.
 
 A neural network can be viewed as a function combiner consisting of multiple layers, where each layer transforms input data into a new representation. The input layer receives raw data, which is then passed on to the hidden layers and finally to the output layer, which gives the neural network's predictions for the input data.
 
