@@ -1,5 +1,7 @@
 ---
-title: "Group 29"
+title: "How can drug comsuption be predicted?"
+subtitle: "Data Mining and Machine Learning Group 29"
+author: "Marta Casero, Jiawei Liu, Han Xu, Jinshen Zhang, Tianjian Yang"
 output:
   pdf_document: 
    extra_dependencies: "subfig"
@@ -12,6 +14,14 @@ header-includes:
 date: "2023-03-22"
 
 ---
+\thispagestyle{empty}
+\newpage
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
 ```{r, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
@@ -37,19 +47,20 @@ library(kableExtra)
 ```
 \newpage
 # Introduction
-What affects drug consumption? Given 12 attributes from over 1800 participants and using data mining techniques this is the question that will be investigated. The variables that have been recorded are divided into two; personality measurements, which include NEO-FFI-R (neuroticism, extraversion, openness to experience, agreeableness, and conscientiousness), BIS-11 (impulsivity), and ImpSS (sensation seeking), and demographic variables which includes, level of education, age, gender, country of residence and ethnicity. All the demographic variables were recorded as categorical and have been quantified for the analysis.
+What affects drug consumption? Given 12 attributes from over 1800 participants and using data mining techniques this is the question that will be investigated. The variables that have been recorded are divided into two categories; personality measurements, which include NEO-FFI-R (neuroticism, extraversion, openness to experience, agreeableness, and conscientiousness), BIS-11 (impulsivity), and ImpSS (sensation seeking), and demographic variables, which include level of education, age, gender, country of residence and ethnicity. All the demographic variables were recorded as categorical and have been quantified for the analysis.
 
-The investigation will focus on the use of one drug, crack, divided into three categories; Never used, Used over a year ago and Used in the last year. 
+The investigation will focus on the use of one drug, crack, divided into three categories; Never used, Used over a year ago and Used in the last year. *Table 1* shows how the data would be distributed for both a seven-class classification and the three-class classification used, there is very few observations on some of them so a three class classification is going to be used..
 
-This report has been divided into parts, summaries, which include plots of the distributions of the variables, formal analysis, results, and conclusion.
+This report has been divided into parts, summaries, which include plots of the distributions of the variables, formal analysis, which include various classification techniques, results, and conclusion.
 ```{r dataset, echo=FALSE, include=FALSE}
 group_29 <- read_csv("https://raw.githubusercontent.com/martacasero7/Group_29_Data_Mining/main/group_29.csv")
 
 group_29 <- group_29 %>% filter(Semer == "CL0") #Semer is a fake drug so people who have said they have taken it have unreliable responses
+levels(as.factor(group_29$Crack))
 group_29 <- na.omit(group_29)
 group_29$Crack <- as.factor(group_29$Crack)
  
-levels(group_29$Crack)
+seven <- summary(group_29$Crack)
 
 group_29$Crack <- ifelse(group_29$Crack == "CL0", "Never Used",
                           ifelse(group_29$Crack %in% c("CL1", "CL2"), "Used over a year",
@@ -58,7 +69,7 @@ group_29$Crack <- ifelse(group_29$Crack == "CL0", "Never Used",
 group_29$Crack <- as.factor(group_29$Crack)
 
 levels(group_29$Crack)
-summary(group_29$Crack)
+three <- summary(group_29$Crack)
 
 group_29_ <- group_29 %>% mutate(Age = ifelse(Age=="-0.95197", "18-24",
                                  ifelse(Age=="-0.07854", "25-34",
@@ -91,9 +102,31 @@ group_29_ <- group_29_ %>% mutate(Ethnicity = ifelse(Ethnicity=="-0.50212", "Asi
                                             ifelse(Ethnicity=="-0.22166", "Mixed White/Black",
                                             ifelse(Ethnicity=="-0.31685", "White", "Other")))))))
 ```
-# Summaries
 
-```{r summaries, fig.ncol = 2, fig.asp=0.7, fig.align = "center", fig.cap='Summaries', fig.subcap=c(' Relationship between crack use and age', 'Relationship between crack use and gender', 'Relationship between crack use and education', 'Relationship between crack use and country', 'Relationship between crack use and ethnicity', 'Boxplots of personality measurements per use of drug')}
+\begin{table}[ht!]
+\centering
+\caption{Distribution of the response variable in a seven and three class }
+\label{crack}
+\begin{tabular}{llll}
+\multicolumn{2}{l}{Seven-class classification} & \multicolumn{2}{l}{Three-class classification} \\
+Never Used    & 1622 & Never Used 1     & 1622 \\
+over a Decade & 67   & Used last year   & 79   \\
+Last Decade   & 109  & Used over a year & 176  \\
+Last Year     & 59   &                  &      \\
+Last Month    & 9    &                  &      \\
+Last Week     & 9    &                  &      \\
+Last Day      & 2    &                  &     
+\end{tabular}
+\end{table}
+
+# Summaries 
+*Figure 1* shows the distribution per drug level of all the explanatory variables. Plots *a)* to *e)* are for the categorical variables and all show barplots of the relationship between them and use of crack and a piechart of the distributions of the categories in the variable.
+
+In *a)* is shown that the distributions per age are pretty similar, other that the 18-24 who have a higher proportion of used in the last year, but it also the age group with the most amount of participants. In *b)* is shown that there is a higher proportion of males who have used the drug, mainly in the last year. In plot *c)* there is a lot of changes in the different education levels, this suggests that this variable might be useful in the formal analysis. From plot *c)* is easy to see that the UK has the highest proportion of never used and that USA has the highest proportions for both the use levels, this two countries are also around 80% of the population investigated. Plot *e* shows that there is no clear relation between crack use and ethnicity.
+
+Plot *f)* is a boxplot of the personality measurements, the data has a lot of outliers but this can be expected as there is a lot of participants in the study. Some of this measurements look to have a significant relationship with the use of crack. This suggests that even thought the dataset has a low proportion of participants that have used crack before; the formal analysis might give good results.
+
+```{r summaries, fig.ncol = 2, out.width="50%", fig.align = "center", fig.cap='Summaries', fig.subcap=c(' Relationship between crack use and age', 'Relationship between crack use and gender', 'Relationship between crack use and education', 'Relationship between crack use and country', 'Relationship between crack use and ethnicity', 'Boxplots of personality measurements per use of drug')}
 
 age_hist <- ggplot(data = group_29_, aes(x=as.factor(Age), group = Crack)) +
   geom_bar(aes(y = ..prop.., fill= Crack), stat="count", position="dodge") +
@@ -191,13 +224,13 @@ ggplot(crack, aes(x = variable, y=value)) +
   ggpubr::rotate_x_text()
 ```
 
-
 ```{r exploratory, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:corr} Correlation Matrix", fig.asp=0.7, fig.pos = "H"}
 skim <- skim(group_29)
 pairs <- ggpairs(group_29, columns=2:13, ggplot2::aes(colour=Crack, alpha=0.2))
 #image created downloaded into directory and added as an image instead
 ```
 ![Correlation matrix.](images/ggpairs.jpg)
+*Figure 2* shows the correlation per response level for all the explanatory variables. As a lot of this variables are quantified categorical variables, it is expected to not have a high correlation. However, the personality measurements give an interesting results in the plot, and it will be useful for the formal analysis and will be referred to in the next part.
 ```{r split, echo=FALSE, warning=FALSE}
 n <- nrow(group_29) #sample size
 m <- ncol(group_29)
@@ -217,7 +250,8 @@ test.data <-   test.data[, -c((m-2):(m-1))]
 # Formal Analysis
 ## K-nearest neighbours
 
-*k*-Nearest Neighbours (kNN) is a nonparametric classification method. This means that we do not have to assume a parametric model for the data or the classes, and thus don’t have to worry about diagnostic tests for normality or the like
+The k-Nearest Neighbors (kNN) approach is a simple yet effective algorithm used for classification and regression tasks. The algorithm works by finding the k observations in the training set that are closest to a new input instance, based on a set distance metric such as Euclidean. The majority class or the mean value of the k nearest neighbors is then used as the prediction for the new instance. The value of k is a hyperparameter that can be tuned to achieve better performance. The kNN algorithm is non-parametric, meaning it doesn't make any assumptions about the underlying data distribution.
+
 ```{r knn, echo=FALSE, warning=FALSE}
 var.mean <- apply(train.data[,2:12],2,mean) #calculate mean of each feature
 var.sd   <- apply(train.data[,2:12],2,sd)   #calculate standard deviation of each feature
@@ -235,12 +269,10 @@ for (k in K){
   valid.error[k] <- mean(valid.data[,13, drop=TRUE] != valid.pred)
 }
 ```
-The minimum valid error given by R is 14, this agrees with the plot in *Figure ?*
-
-```{r knnplot, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:knnp} KNN valid error", fig.asp=0.5, fig.pos = "H"}
-plot(K, valid.error, type="b", ylab="validation error rate")
+```{r knnplot, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:knnp} KNN valid error", fig.asp=0.4, fig.pos = "H"}
+plot(K, valid.error, type="b", ylab="Validation error rate")
 ```
-Given both the minimum valid error and the plot in \ref{knnp}, the optimal value for the kNN prediction is 14.
+Given both the minimum valid error and the plot in *Figure 3*, the optimal value for kNN prediction is 14.
 ```{r knn2, echo=FALSE, warning=FALSE}
 k.opt <- which.min(valid.error)
 test.pred <- knn(train.data.scale, test.data.scale, train.data[,13, drop=TRUE], k=14)
@@ -249,7 +281,16 @@ kable(knn,
       caption = "Prediction table form the knn method") %>%
   kable_styling(latex_options = "HOLD_position", full_width = F)
 ```
+*Table 2* shows that knn predicts most valuables into Never used, this probably comes from the fact that there was not many observations in the data set in the other variables and thet number gets even smaller when the dataset gets split into training and test set.
+
 ## Tree method
+
+Classification tree method is a popular algorithm used in data mining and machine learning to create a predictive model for classification tasks. It works by recursively partitioning the data into subsets based on the values of the input features, and then assigning a class label to each subset based on the majority class of the training examples in that subset.
+
+The algorithm starts with the entire dataset as the root node, and then splits the data into two or more subsets based on the feature that provides the greatest information gain, or the most effective way to separate the classes. This process continues until a stopping criterion is met, such as a maximum tree depth or a minimum number of training examples per leaf node.
+
+The resulting classification tree can be used to predict the class label of new examples based on their input features. This classification method is known for its simplicity and visualization, as the resulting tree can be easily interpreted and understood by the general public.
+
 ```{r treedata, echo=FALSE, warning=FALSE, include=FALSE}
 set.seed(1)
 n <- nrow(group_29_) #sample size
@@ -275,18 +316,12 @@ rpart.plot(tree.crack, type=2, extra=4)
 plotcp(tree.crack)
 ```
 
-\begin{table}[ht!]
-    \centering
-    \begin{tabular}{c|c}
-    \hline
-    \includegraphics[width=0.4\linewidth]{tree1.png} &
-    \includegraphics[width=0.4\linewidth]{cptree.png}
-\end{figure}
-\end{tabular}
-    \caption{Decision tree and cp plot}
-    \label{kaplan1}
-\end{table}
+```{r tplot, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap='Classification tree and cp', fig.subcap=c("Classification tree", "cp")}
+rpart.plot(tree.crack, type=2, extra=4) 
 
+plotcp(tree.crack)
+```
+*Figure 4* shows the classification tree and it cp, it is easy to se the larger sized tree are better to fit this data.
 ```{r tree2, echo=FALSE}
 pred <- predict(tree.crack, train.tree, type="class")
 pred_m <- confusionMatrix(pred, train.tree$Crack, positive='y')
@@ -301,7 +336,8 @@ tree_accuracy <- test$overall["Accuracy"]
 
 tree_table <- test$table
 
-test_class <- test$byClass
+test_class <- as.data.frame(test$byClass)[c("Sensitivity", "Specificity", "Pos Pred Value", "Neg Pred Value", "Precision", "Balanced Accuracy")]
+
 ```
 
 ```{r tree_table, echo=FALSE}
@@ -310,34 +346,21 @@ kable(tree_table,
   kable_styling(latex_options = "HOLD_position", full_width = F)
 
 ```
-Given the results on *Table ?* the accuracy of this tree is 0.8765957.
+Given the results on *Table 3* the accuracy of this tree is 0.8765957. This trees does not use all the possible explanatory variables.
 
 ```{r tree_class, echo=FALSE}
-kable(test_class, 
-      caption = "Table form the full pruned tree") %>%
-  kable_styling(latex_options = "HOLD_position", full_width = F)
+kable(test_class,
+      caption = "Table from tree") %>%
+  kable_styling(font_size = 7, latex_options = "HOLD_position", full_width = F)
 ```
 
-\begin{table}[ht!]
-    \centering
-    \begin{tabular}{c|c}
-    \hline
-    \includegraphics[width=0.4\linewidth]{Full tree.png} &
-    \includegraphics[width=0.4\linewidth]{Full tree cp.png}
-\end{figure}
-\end{tabular}
-    \caption{Pruned full tree and cp plot}
-    \label{kaplan1}
-\end{table}
+A full tree can also be created and pruned, the full tree will have all the explanatory variables. This can then be compared to the previous tree to decide which one is a better fit for this dataset.
 
 ```{r fulltree, echo=FALSE, include=FALSE}
 #full tree and prune
 Full_tree <- rpart(Crack~Age+Gender+Education+Country+Ethnicity+Nscore+Escore+Oscore+Ascore+Cscore+Impulsive+SS, data=train.tree, method="class", 
                    control=rpart.control(minsplit=2,minbucket=1,maxdepth=30,cp=-1))
 pruned_tree <- prune(Full_tree, cp=0.01)
-prune_tree <- rpart.plot(pruned_tree, box.palette = "auto")
-
-prune_cp <- plotcp(pruned_tree)
 
 prune_pred <- predict(pruned_tree, train.tree, type="class")
 pred_m2 <- confusionMatrix(prune_pred, train.tree$Crack, positive='y')
@@ -348,11 +371,17 @@ val2 <- confusionMatrix(prune_pred1, valid.tree$Crack, positive='y')
 prune_pred2 <- predict(pruned_tree, test.tree, type = 'class')
 test2 <- confusionMatrix(prune_pred2, test.tree$Crack, positive='y')
 
-tree_accuracy2 <- test$overall["Accuracy"]
+tree_accuracy2 <- test2$overall["Accuracy"]
 
-tree_table2 <- test$table
+tree_table2 <- test2$table
 
-test_class2 <- test$byClass
+test_class2 <- as.data.frame(test2$byClass)[c("Sensitivity", "Specificity", "Pos Pred Value", "Neg Pred Value", "Precision", "Balanced Accuracy")]
+
+```
+
+```{r tplot2, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap='Full pruned tree and cp', fig.subcap=c("Full tree", "cp")}
+rpart.plot(pruned_tree, box.palette = "auto")
+plotcp(pruned_tree)
 ```
 
 ```{r tree_table2, echo=FALSE}
@@ -360,26 +389,28 @@ kable(tree_table2,
       caption = "Prediction table form the full pruned tree") %>%
   kable_styling(latex_options = "HOLD_position", full_width = F)
 ```
-The accuracy given by the full pruned tree on *Figure ?* is 0.8702128 
+The accuracy given by the full pruned tree on *Figure 5* can be calculated using the data on *Table 5*; the accuracy is 0.8702128 
 ```{r tree_class2, echo=FALSE}
 kable(test_class2, 
       caption = "Table form the full pruned tree") %>%
-  kable_styling(latex_options = "HOLD_position", full_width = F)
+  kable_styling(font_size = 7, latex_options = "HOLD_position", full_width = F)
 ```
-\newpage
+*Table 4* and  *Table 6* have very similar values, however the first tree has a sighlty better prediction. It also has less nodes which makes it faster to run and easier to understand. Hence, the tree on *Figure 4* is a better classification method for the given data.
+
 ## Linear and quadratic discriminant analysis
+
 Linear Discriminant Analysis (LDA) is a statistical technique that seeks to find a linear combination of features or variables that best separates two or more classes or groups of data. The goal of LDA is to project the original data into a lower-dimensional space while preserving the class-discriminatory information.
 
 In other words, LDA seeks to find a linear boundary or decision surface that best separates the classes, and accomplishes this by maximizing the between-class variance and minimizing the within-class variance. This also means that the use of LDA requires the variables to have a certain distribution and variance. To be more exact, we'll assume the group of variables follow a multivariate Gaussian distribution, and have a equal covariance matrix.
 
 Quadratic Discriminant Analysis (QDA) is a statistical technique that is similar to LDA. However, unlike LDA, QDA allows for non-linear decision boundaries. And the variance and covariance of the predictor variables are allowed to differ between classes, resulting in a separate covariance matrix for each class.
 
-To apply LDA (and QDA), we first assume that the observations in dataset follow a multivariate Gaussian
+To apply LDA (and QDA),there is an assumption that the observations in dataset follow a multivariate Gaussian
 distribution, which is more restrictive. 
 
-Also, we'll mainly consider in two different cases, the equal covariance matrix case, and the case in which the class-covariance matrices are not assumed to be equal. The former case will apply LDA, and for later will apply QDA. 
+Two different cases are going to be considered, the equal covariance matrix case, and the case in which the class-covariance matrices are not assumed to be equal. The former case will apply LDA, and for later QDA will be applied. 
 
-We can see from the chart on *Figure 2* that the variable from Nscore to Cscore nearly follow the Gaussian distribution and Impulsive and SS roughly follow it. However, other variables are numerical variables transformed from categorical variables, and obviously don't follow Gaussian distribution. So two group of analysis will be made to see whether LDA method works well on this set of data.(the whole variable one and the only "personality measurements" one.)
+From the chart on *Figure 3* it is easy to see that the variables Nscore to Cscore nearly follow the Gaussian distribution and Impulsive and SS roughly follow it. However, other variables are numerical variables transformed from categorical variables, and obviously do not follow Gaussian distribution. So two group of analysis will be made to see whether LDA method works well on this set of data.LDA1 will consider all the variables given and LDA2 will only consider the numerical variables; personality measurements.
 ```{r checkcov, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, include=FALSE}
 for (i in 2:13) {
   cat(colnames(group_29)[i],sep="\n")
@@ -407,7 +438,7 @@ SS        & 0.9191740  & 0.5898128      & 0.7698302
 \label{tab:my-table}
 \end{table}
 
-It seems that only Nscore and Ascore have similar variance. Although the variance and covariance show that LDA might not well satisfied to LDA, but we'll a least have a try and make some visualization. 
+It seems that only Nscore and Ascore have similar variance. Although the variance and covariance show that the data might not fit well in an LDA, anyway, the analysis has been performed. 
 ```{r split2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, include=FALSE}
 set.seed(1)
 n <- nrow(group_29) #sample size
@@ -426,38 +457,43 @@ test.data2  <- group_29[-ind,-c(1:6,14)]
 lda.data1 <- lda(Crack~., data=train.data1)
 
 kable(table(Actual=(actual<-train.data1$Crack),
-       Predicted=(classified<-predict(lda.data1)$class))) %>%
+       Predicted=(classified<-predict(lda.data1)$class)), caption = "Prediction table from LDA1") %>%
   kable_styling(latex_options = "HOLD_position", full_width = F)
 ```
 The density plot for each of the drug use factors has been plotted on the same axis to see the overlap between them.
-```{r lda1_plot1, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:corr} Linear discriminant analysis", fig.asp=0.7, fig.pos = "H"}
+```{r lda1_plot1, echo=FALSE, include=FALSE}
 data.pred.tr1 <- predict((lda.data1))
 densityplot <- ldahist(data = data.pred.tr1$x[,1], g=train.data1$Crack)
-
-dataset1 <- data.frame(Type=train.data1$Crack, lda=data.pred.tr1$x)
-ggplot(dataset1, aes(x=lda.LD1)) + 
-  geom_density(aes(group=Type, colour=Type, fill=Type), alpha=0.3)+
-  labs(x= "", y="Density")
 ```
+
 
 ```{r lda, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 lda.data2 <- lda(Crack~.,data=train.data2)
 
 kable(table( Actual=(actual<-train.data2$Crack),
-       Predicted=(classified<-predict(lda.data2)$class)))%>%
+       Predicted=(classified<-predict(lda.data2)$class)), caption = "Prediction table from LDA2")%>%
   kable_styling(latex_options = "HOLD_position", full_width = F)
 ```
-```{r lda_plot2, echo=FALSE, include=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:corr} Linear discriminant analysis", fig.asp=0.7, fig.pos = "H"}
+
+```{r lda_plot21, echo=FALSE, include=FALSE}
 data.pred.tr2 <- predict((lda.data2))
 ldahist(data = data.pred.tr2$x[,1], g=train.data2$Crack)
+```
+
+```{r lda_plot2, echo=FALSE, eval = TRUE, warning=FALSE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap="Linear discriminat models", fig.subcap=c("LDA1", "LDA2"), fig.asp=0.5, fig.pos = "H"}
+dataset1 <- data.frame(Type=train.data1$Crack, lda=data.pred.tr1$x)
+ggplot(dataset1, aes(x=lda.LD1)) + 
+  geom_density(aes(group=Type, colour=Type, fill=Type), alpha=0.3)+
+  labs(x= "", y="Density")
 
 dataset <- data.frame(Type=train.data2$Crack, lda=data.pred.tr2$x)
 ggplot(dataset, aes(x=lda.LD1)) + 
   geom_density(aes(group=Type, colour=Type, fill=Type), alpha=0.3)+
   labs(x= "", y="Density")
+
 ```
 
-For both of the analysis performed it is shown on the plots that the LDA does not work properly as they overlap, this implies that LDA does not manage to difference between the 3 factors established.
+For both of the analysis performed it is shown on the plots in *Figure 5* that the LDA does not work properly as they overlap, this implies that LDA does not manage to difference between the 3 factors established.
 
 ```{r qda1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 qda.data1 <- qda(Crack~., data=train.data1)
@@ -466,7 +502,7 @@ data.pred.te21 <- predict(qda.data1, test.data1)
 #mean(train.data$Crack != data.pred.te2$class)
 
 kable(table(actual<-train.data1$Crack, 
-      Predicted<-predict(qda.data1)$class)) %>%
+      Predicted<-predict(qda.data1)$class), caption = "Prediction table from QDA1") %>%
   kable_styling(latex_options = "HOLD_position", full_width = F)
 
 mean_lda <- mean(is_miss <- actual != Predicted)
@@ -475,20 +511,18 @@ mean_lda <- mean(is_miss <- actual != Predicted)
 qda.data2 <- qda(Crack~., data=train.data2)
 data.pred.te22 <- predict(qda.data2, test.data2)
 
-#mean(train.data$Crack != data.pred.te2$class)
-
-kable(table(actual<-train.data2$Crack, Predicted<-predict(qda.data2)$class)) %>%
+kable(table(actual<-train.data2$Crack, Predicted<-predict(qda.data2)$class), caption = "Prediction table from QDA2") %>%
   kable_styling(latex_options = "HOLD_position", full_width = F)
 
 mean_qda <- mean(is_miss <- actual != classified)
 ```
 
-Better than LDA, but far from suitable for this set. 
+The QDA analysis performs better than the LDA but it is still not suitable for this dataset.. 
 
-As can be seen from the visualization and tables, because the distribution of variables does not meet the requirements of LDA and QDA, the classification results are mostly shown as most observations are classified into the same class. 
+As can be seen from the visualization and tables, because the distribution of variables does not meet the requirements of LDA ot QDA, the classification results are mostly shown as most observations are classified into the same class. 
 
-## SVM
-SVM is a machine learning algorithm that can be used for classification and regression analysis. It tries to find the best hyperplane that can separate the different classes of data points with the maximum margin of separation. SVM can handle both linearly separable and non-linearly separable data by using different kernel functions(here we use radial kernel) to transform the data into a higher-dimensional space where it can be separated.
+## Support vector machines
+Support vector machines (SVM) is a machine learning algorithm that can be used for classification and regression analysis. It tries to find the best hyperplane that can separate the different classes of data points with the maximum margin of separation. SVM can handle both linearly separable and non-linearly separable data by using different kernel functions(here we use radial kernel) to transform the data into a higher-dimensional space where it can be separated.
 ```{r data, echo=FALSE}
 set.seed(1)
 data<- group_29
@@ -504,7 +538,7 @@ train.data12 <- data[ind, ]
 test.data12 <- data[-ind, ]
 ```
 
-```{r tune, echo=FALSE}
+```{r tune, echo=FALSE, include=FALSE}
 library(e1071)
 
 # denote parameter set for tune the model
@@ -514,51 +548,81 @@ tune.grid <- expand.grid(C = c(0.01, 0.1, 1, 10),
 
 # tune SVM model
 tuned <- tune(svm, Crack~., data = train.data12, kernel = "radial", range = tune.grid)
-
-# show best parameters chosen
-print(tuned)
 ```
 
+```{r tuned, echo=FALSE, include=FALSE}
+# show best parameters chosen
+tuned
+```
+Parameter tuning of ‘svm’:
 
+- sampling method: 10-fold cross validation 
+
+- best parameters: c=0.01	gamma:1	
+
+- best performance: 0.1424763 
+
+After performing the tune analysis, the parameters for a bes model fit are  c=0.01	gamma:1. After implementing this paramaters in a SVM model and predictiong a model the responses in *Table 12* are obtained.
 ```{r SVM_fn, echo=FALSE}
 # prediction(best parameters: C=0.01, gamma=1)
 svm.model.ovo<-svm(Crack~., train.data12, kernel = "radial", 
-                   C = 1, gamma = 0.01,
+                   C = 0.01, gamma = 1,
                    multiclass="ovo") 
 svm.model.ova<-svm(Crack~., train.data12, kernel = "radial", 
-                   C = 1, gamma = 0.01, 
+                   C = 0.01, gamma = 1, 
                    multiclass="ova", 
                   )
+```
 
-par(mfrow = c(1, 2))
+```{r svm_pred, echo=FALSE}
+
 pred_svm_1 <- predict(svm.model.ovo, test.data12[-12], type="class")
-plot(pred_svm_1, test.data12$Crack, 
-     xlab = "origional", ylab = "predict under one vs. one")
 pred_svm_2 <- predict(svm.model.ova, test.data12[-12])
-plot(pred_svm_2 ,test.data12$Crack,
-     xlab = "origional", ylab = "predict under one vs. all")
-par(mfrow = c(1, 1))
 
+```
+
+```{r svm_plot, echo=FALSE, include=FALSE}
+plot(pred_svm_1, test.data12$Crack, 
+     xlab = "original", ylab = "One vs. One")
+plot(pred_svm_2 ,test.data12$Crack,
+     xlab = "original", ylab = "One vs. All")
+
+```
+
+```{r svm_s, echo=FALSE, include=FALSE}
 accuracy <- function(actual, predicted) {
   mean(actual == predicted)
 }
-summary(data.frame(pred.ovo = predict(svm.model.ovo, test.data12[,-12]),
-                   pred.ova = predict(svm.model.ova, test.data12[,-12]),
+summary(data.frame(pred.ovo = predict(svm.model.ovo, test.data12[,-12]), pred.ova = predict(svm.model.ova, test.data12[,-12]),
                    actual = test.data12$Crack))
-accuracy(test.data$Crack, pred_svm_1)
-accuracy(test.data$Crack, pred_svm_2)
+acc1 <- accuracy(test.data$Crack, pred_svm_1)
+acc2 <- accuracy(test.data$Crack, pred_svm_2)
 # prediction outcomes for different strategies One-vs-One (OVO) 
 # and One-vs-All (OVA) approaches turned out to be same, all predicted the test 
 # observations into Never Used which have around 86.30% accuracy
 ```
-In summary, based on the SVM model, we transformed the three-classification problem into a two-classification problem by both one-to-one and one-to-all strategies, and applied the radial kernel, as well as adjusting the parameters to obtain the final two models. However, due to the poor quality of the data, the final models on the test set predicted all observations to be in the classification of never used drugs, but nevertheless maintained a high prediction accuracy of 86.30%. If the model continues to be used in the future, information on the drug-using population or more relevant variables should be added.
+\begin{table}[ht!]
+\centering
+\caption{Prediction table for OVO and OVA}
+\begin{tabular}{llll}
+                 & Prediction OVO & Prediction OVA & Actual \\
+Never Used       & 564            & 564            & 496    \\
+Used last year   & 0              & 0              & 24     \\
+Used Over a year & 0              & 0              & 44    
+\end{tabular}
+\label{tab:my-svm}
+\end{table}
+
+The OVO (one-v-one) approach has a accuracy of 0.8953901, the same as OVA (one-v-all) approach. However this level of accuracy is not actually useful as both of the model predict all the observations into the 'Never Used' category.
+
+In summary, based on the SVM model, the three-classification problem was trasformed into a two-classification problem by both one-to-one and one-to-all strategies, and applied the radial kernel, as well as adjusting the parameters to obtain the final two models. However, due to the poor quality of the data, the final prediction on the test set puts all observations to be in the classification of never used drugs. The model still maintains a high prediction accuracy of 86.30%. If the model continues to be used in the future, information on the drug-using population or more relevant variables should be added.
 
 ## Neural network
 A neural network is a computer algorithm with a structure and function similar to the biological nervous systems. It consists of a series of interconnected nodes (also known as neurons) that process input data and generate output. Neural networks are commonly used for machine learning tasks such as classification, regression, image recognition, natural language processing, etc.
 
 A neural network can be viewed as a function combiner consisting of multiple layers, where each layer transforms input data into a new representation. The input layer receives raw data, which is then passed on to the hidden layers and finally to the output layer, which gives the neural network's predictions for the input data.
 
-When training a neural network, we provide the network with training data and a target output, and the network constantly adjusts its parameters to minimize the gap between its predictions and the target output. This self-tuning process is usually achieved using the gradient descent algorithm.
+When training a neural network, the network has to provided with training data and a target output, and the network constantly adjusts its parameters to minimize the gap between its predictions and the target output. This self-tuning process is usually achieved using the gradient descent algorithm.
 
 Neural networks play an important role in deep learning because deep learning models are usually complex models composed of multiple neural network layers.
 ```{r ind, echo=FALSE, warning=FALSE}
@@ -589,7 +653,6 @@ test.std  <- apply(test.neural[,1:12], 2, standardisation)
 test.std  <- cbind(test.neural[,13],test.std)
 
 ```
-
 ```{r neural1, echo=FALSE, warning=FALSE, include=FALSE}
 library(neuralnet)
 set.seed(83)
@@ -634,17 +697,18 @@ ten_nn_group_test<-sum((ten_nn_group_test_output-test.neural[,"Crack"])^2)/2
 ten_nn_group_test
 ```
 
-```{r nplot, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap='Neural network plots', fig.subcap=c("One hidden layer", "Two hidden layers", "Three hidden layers")}
+```{r nplot, fig.ncol = 2, out.width = "40%", fig.align = "center", fig.cap='Neural network plots', fig.subcap=c("One hidden layer", "Two hidden layers", "Three hidden layers")}
 plotnet(nn_group, rep="best")
 plotnet(nn_group_2, rep="best")
 plotnet(nn_group_3, rep="best")
 ```
-In *Figure ?*, the thickness of each connection is proportional to the weights’ magnitude; the black colour refers to positive weights and gray refers to negative weights. The first layer includes only input variables with nodes labelled arbitrarily as I1 through I12 for 12 input variables. One hidden layer is plotted as H1. The output layer is plotted last with its node labeled as O1. Bias nodes connected to the hidden and output layers are also shown
-```{r nplot2, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:neuraln} Neural networks", fig.asp=0.7, fig.pos = "ht!", out.width="50%"}
+In *Figure 6*, the thickness of each connection is proportional to the weights’ magnitude; the black colour refers to positive weights and gray refers to negative weights. The first layer includes only input variables with nodes labelled arbitrarily as I1 through I12 for 12 input variables. Hidden layers are plotted as H1, H2, H3. The output layer is plotted last with its node labeled as O1. Bias nodes connected to the hidden and output layers are also shown.
+```{r nplot2, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:neuraln} Neural network with 5 hidden layers", fig.asp=0.8, fig.pos = "ht!", out.width="50%"}
 plot(ten_nn_group_5,rep="best",cex=0.7)
 ```
+In general, training the neural network with too many steps can lead to overfitting, whereas too few may result in an underfit model, in this case 4 models have been fitted with 1,2,3 and 5 hidden layers. Plot *a* in *Figure 8* shows that the error in the training data reduces with the addition of hidden layers but it stays about the same in the test data, hence there is need to add more layers as it could lead to overfitting and it would make the code slower.
 
-```{r neuralplot, echo=FALSE, warning=FALSE}
+```{r ggplot, echo=FALSE, eval = TRUE, warning=FALSE, fig.ncol = 2, out.width = "50%", fig.align = "center", fig.cap='Neural networks SSE and Importance', fig.subcap=c("SSE", "Importance of NN5")}
 library(tibble)
 Regression_NN_Errors<-tibble(Network=rep(c("NN","NN2","NN3","NN5"),each=2),
                              DataSet=rep(c("Train","Test"),time=4),
@@ -654,52 +718,58 @@ Regression_NN_Errors<-tibble(Network=rep(c("NN","NN2","NN3","NN5"),each=2),
                                nn_group_error_3,nn_test_SSE_3,
                                ten_nn_group_error, ten_nn_group_test
                              ))
-```
-```{r ggplot, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:nplot5} Neural networks SSE", fig.asp=0.5, fig.pos = "H"}
+
 nn_ggplot<-Regression_NN_Errors %>%
   ggplot(aes(Network,SSE,fill=DataSet))+
   geom_col(position="dodge")
 nn_ggplot
 
-``` 
-
-```{r ggplot2, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:nngarson}Neural networks factor importance", fig.asp=0.5, fig.pos = "H"}
 nn_garson<-garson(ten_nn_group_5)
 nn_garson
 ```
+
+Plot *b* on *Figure 8* shows that the 3 explanatory variables: Ethnicity, Gender and Country have  hihger importance in the analysis than the other. Hence a neural network with only them three as explanatory variables has been plotted
 
 ```{r plyr, echo=FALSE, warning=FALSE, error=FALSE, include=FALSE}
 library(plyr)
 ```
 
-```{r neural2, echo=FALSE, warning=FALSE, error=FALSE}
+```{r neural2, echo=FALSE, warning=FALSE, error=FALSE, include=FALSE}
 train<-train.neural
-crack_matrix<-model.matrix(Crack~Nscore+Age,data = train)
+crack_matrix<-model.matrix(Crack~Ethnicity+Gender+Country, data = train)
 crack_matrix_final<-crack_matrix[,-1]
 
 head(crack_matrix_final,4)
-head(train[,c("Nscore","Age")],4)
+head(train[,c("Ethnicity","Gender", "Country")],4)
 
-train$Age<-as.integer(train$Age)-1
 predictor_list<-paste(colnames(crack_matrix_final),collapse = "+")
 predictor_list
 f<-paste(c("train$Crack~",predictor_list),collapse = "")
 f
+```
 
+```{r , echo=FALSE}
 library(neuralnet)
 set.seed(84)
 nn_crack<-neuralnet(f,data=crack_matrix_final,hidden = c(2),
                      linear.output = FALSE)
+```
+
+```{r lastplot, echo=FALSE, fig.align = "center", fig.cap = "\\label{fig:neuraln} Neural networks with highest importance explanatory variables", fig.asp=0.5, fig.pos = "ht!", out.width="60%"}
 plot(nn_crack)
 ```
+![Neural network with explanatory variables Ethnicity, Gender and Country](images/neural.png)
+```{r, include=FALSE}
+Crack_train_loss_nn <- nn_crack$result.matrix[1,1]
+paste("CE training loss function from neural network:", round(Crack_train_loss_nn,3))
+```
+Error of the neural network in *Figure 9* is 282.67.However, as shown in plot *a* in *Figure 8* this is not the lowest SSE found. Therefore the best neural network found for this data set is NN5.
 
 ## T-SNE
 
 T-SNE (t-distributed stochastic neighbor embedding) is a popular nonlinear dimensionality reduction technique used for data visualization. Its purpose is to transform high-dimensional data into a low-dimensional space (typically 2D or 3D) while preserving the local structure of the data points. In other words, t-SNE helps us to visualize complex data sets with many variables and to identify patterns or clusters that might not be apparent in the high-dimensional space.
 
-First, we set all parameters to default values, but $verbose=TRUE$ to see how the function works. 
-
-
+First, all parameters have been set to default values, but $verbose=TRUE$ to see how the function works. 
 
 ```{r tsne1, echo=FALSE, include=FALSE}
 library(Rtsne)
@@ -708,28 +778,28 @@ set.seed(1)
 tsne <- Rtsne(X = data, dims = 2,verbose=TRUE)
 ```
 
-```{r plot1, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:scat} t-distributed stochastic neighbor embedding", fig.asp=0.4, fig.pos = "H"}
+```{r plot1, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:lda1} t-distributed stochastic neighbor embedding", fig.asp=0.25, fig.pos = "H"}
 Crack=group_29$Crack
 tsne_result=as.data.frame(tsne$Y)
 colnames(tsne_result)=c("tSNE1","tSNE2")
 ggplot(tsne_result,aes(tSNE1,tSNE2, color=Crack))+geom_point()
 
 ```
-In order to optimize, we first set initial_dims to the number of variables in the input data which is 12. 
+In order to optimize, the initial_dims are being set to the number of variables in the input data which is 12. 
 
 ```{r tsne2, echo=FALSE, include=FALSE}
 set.seed(1)
 tsne <- Rtsne(X = data, dims = 2,initial_dims=12,verbose=TRUE)
 ```
 
-```{r plot2, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:scat} t-distributed stochastic neighbor embedding after dimesionalising", fig.asp=0.4, fig.pos = "H"}
+```{r plot2, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:tsne2} t-distributed stochastic neighbor embedding after dimesionalising", fig.asp=0.25, fig.pos = "H"}
 tsne_result=as.data.frame(tsne$Y)
 colnames(tsne_result)=c("tSNE1","tSNE2")
 ggplot(tsne_result,aes(tSNE1,tSNE2,color=Crack))+geom_point()
 
 ```
 
-After the dimensionality reduction shown in the figure, the results were not satisfactory, so we tried to tune the model by adjusting the parameters.
+After the dimensionality reduction shown in the figure, the results were not satisfactory, so the model was tuned by adjusting the parameters.
 
 In order to preserve more global features and improve accuracy (which did not significantly increase the running time of the code), we tried to increase the values of the parameters perplexity and theta, with the following results. 
 
@@ -738,7 +808,7 @@ set.seed(1)
 tsne <- Rtsne(X = data, dims = 2,initial_dims=12,perplexity = 50,theta=0.8,verbose=TRUE)
 ```
 
-```{r plot3, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:scat} t-distributed stochastic neighbor embedding after tuning", fig.asp=0.4, fig.pos = "H"}
+```{r plot3, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:tsne3} t-distributed stochastic neighbor embedding after tuning", fig.asp=0.25, fig.pos = "H"}
 tsne_result=as.data.frame(tsne$Y)
 colnames(tsne_result)=c("tSNE1","tSNE2")
 ggplot(tsne_result,aes(tSNE1,tSNE2, color=Crack))+geom_point()
@@ -752,26 +822,31 @@ set.seed(1)
 tsne <- Rtsne(X = data, dims = 2,initial_dims=12,max_iter = 2000,perplexity = 50,theta=0.8,verbose=TRUE)
 ```
 
-After increasing the maximum number of iterations to 2000, the error did not show a steady decline but started to fluctuate, so we still decided to change to the default value of 1000 iterations.
+After increasing the maximum number of iterations to 2000, the error did not show a steady decline but started to fluctuate, so the default value was set to 1000 iterations.
 
 ```{r tsne5, echo=FALSE, include=FALSE}
 set.seed(1)
-tsne <- Rtsne(X = data, dims = 2,initial_dims=12,perplexity = 20,theta=0.2,verbose=TRUE)
+tsne <- Rtsne(X = data, dims = 2,initial_dims=12,perplexity = 20,theta=0.25,verbose=TRUE)
 ```
 
-```{r plot4, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:scat} t-distributed stochastic neighbor embedding with 1000 iterations", fig.asp=0.4, fig.pos = "H"}
+```{r plot4, echo=FALSE, eval = TRUE, warning=FALSE, fig.align = "center", fig.cap = "\\label{fig:tsne5} t-distributed stochastic neighbor embedding with 1000 iterations", fig.asp=0.25, fig.pos = "H"}
 tsne_result=as.data.frame(tsne$Y)
 colnames(tsne_result)=c("tSNE1","tSNE2")
 ggplot(tsne_result,aes(tSNE1,tSNE2,color=Crack))+geom_point()
 
 ```
 
-Through the series of processes showed above, it was clear that the t-SNE method was less effective in the data for this project and now we turn to the Adaptive boosting method. 
+Through the series of processes showed above, it was clear that the t-SNE method was not very effective in the data for this project.
 
 ## Adaptive boosting
 
-Adaptive boosting is a modeling technique
+Adaptive Boosting is learning algorithm in machine learning that combines multiple weak learners to create a strong learner. It works by repetitively training a sequence of weak classifiers of the training data, with the weights updated after each iteration to give more importance to the examples that were misclassified by the previous classifiers.
 
+In each repetition, the algorithm selects a weak classifier that performs better than random guessing on the current training data, and assigns it a weight based on its accuracy. The final classifier is a weighted combination of all the weak classifiers, with the weights determined by their individual accuracies.
+
+Adaptive boosting is effective at handling complex classification problems and achieving high accuracy, even with noisy o data. It is also known for its ability to handle imbalanced datasets, where one class may have much fewer examples than the others. However, it can be sensitive to outliers and may overfit if the weak classifiers are too complex or the number of iterations is too large.
+
+Given that the dataset used for this analysis has a large number of entries in one of the classes and very few in the other two adaptive boosting should give a better result than the classification methods previously used.
 ```{r boost, echo=FALSE, warning=FALSE, error=FALSE, include=FALSE}
 library(adabag)
 library(caret)
@@ -795,7 +870,29 @@ summary(model_adaboost)
 ```
 
 ```{r boost2, echo=FALSE, warning=FALSE, error=FALSE}
-model_adaboost$confusion
-model_adaboost$error
+kable(model_adaboost$confusion, 
+      caption = "Prediction table from adaptive boosting") %>%
+  kable_styling(latex_options = "HOLD_position", full_width = F)
+error <- model_adaboost$error
 ```
+The model error is 0.146569. This implies the accuracy is about the same as the accuracy gotten for the rest of the classification methods. However, this model does predict data into all the given categories so with a change of parameters within the function it could be a good method.
 
+# Results
+After performing multiple classification techniques there is one main thing to point out. The dataset used is not very suitable for the analysis performed. Given that as shown in *Table 1* there is many more entries in the group of never used crack (CL0) than any of the other groups combined. The decision was made to use 3 classes instead of all 5 given in the data set as there would be observation in each of the classes.
+
+All the specific results have been shown throughout the report in each of the subsetions of the formal analysis; so this will not go into much detail.
+
+All the formal analysis performed have very similar results, with accuracies around $0.85$. This number would usually be very satisfactory, but given the distribution of comsumtion of drug in the dataset used this is level of accuracy is not really useful as it's achieved by setting all the predictions into the Never Used category which is unhelpful and not realistic.   
+
+Out of the methods studied within the subject, the first classification tree in the tree method section is probably the best classification method for this data given the mix between categorical and numerical explanatory variables and the limited number of observation withing the drug use levels. Is is also the easiest method to show to the general public and even though this is not a big factor it could come useful if this was to be presented in the future.
+
+Outside of that a more thorough analysis of adaptive boosting would probably give the best results. The main difficulty found in order to do that is the time taken by the computer programmes to run this method. 
+
+# Conclusion
+In summary, the classifications methods used did not give the level of precision wanted. This could be due to the distribution on the data set as most of the participants had never used the drug studied. 
+
+Given the methods studied within this course a better approach might have been to use less number of analysis techniques and do a more in depth analysis of the classification method that seemed to work, as for example the LDA and QDA was not a good fit from this data and that was easy to see from the summary plots.
+
+More explanatory variables would be needed to get a more accurate prediction in the future, this could include the use of other drugs; people who smoke, drink or do other drugs might be more likely to have tried crack. Socio-economical variables and health variables might also come useful to perform a better model.
+
+The analysis performed has a high level of accuracy, but given the dataset used this it does not give a useful prediction. There is improvements within both the sampling method and formal analysis that could be changed to try to get a better prediction in future works within the topic.
